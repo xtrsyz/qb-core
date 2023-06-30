@@ -35,7 +35,7 @@ local function onPlayerConnecting(name, _, deferrals)
     end
 
     for _, v in pairs(identifiers) do
-        if string.find(v, 'license') then
+        if string.find(v, QBCore.Config.PrimaryIdentifier) then
             license = v
             break
         end

@@ -151,7 +151,7 @@ end
 ---@return boolean
 function QBCore.Functions.SetPlayerBucket(source, bucket)
     if source and bucket then
-        local plicense = QBCore.Functions.GetIdentifier(source, 'license')
+        local plicense = QBCore.Functions.GetIdentifier(source, QBCore.Config.PrimaryIdentifier)
         SetPlayerRoutingBucket(source, bucket)
         QBCore.Player_Buckets[plicense] = {id = source, bucket = bucket}
         return true
@@ -472,7 +472,7 @@ end
 ---@param source any
 ---@return boolean
 function QBCore.Functions.IsOptin(source)
-    local license = QBCore.Functions.GetIdentifier(source, 'license')
+    local license = QBCore.Functions.GetIdentifier(source, QBCore.Config.PrimaryIdentifier)
     if not license or not QBCore.Functions.HasPermission(source, 'admin') then return false end
     local Player = QBCore.Functions.GetPlayer(source)
     return Player.PlayerData.optin
@@ -481,7 +481,7 @@ end
 ---Toggle opt-in to admin messages
 ---@param source any
 function QBCore.Functions.ToggleOptin(source)
-    local license = QBCore.Functions.GetIdentifier(source, 'license')
+    local license = QBCore.Functions.GetIdentifier(source, QBCore.Config.PrimaryIdentifier)
     if not license or not QBCore.Functions.HasPermission(source, 'admin') then return end
     local Player = QBCore.Functions.GetPlayer(source)
     Player.PlayerData.optin = not Player.PlayerData.optin
@@ -492,7 +492,7 @@ end
 ---@param source any
 ---@return boolean, string?
 function QBCore.Functions.IsPlayerBanned(source)
-    local plicense = QBCore.Functions.GetIdentifier(source, 'license')
+    local plicense = QBCore.Functions.GetIdentifier(source, QBCore.Config.PrimaryIdentifier)
     local result = MySQL.single.await('SELECT * FROM bans WHERE license = ?', { plicense })
     if not result then return false end
     if os.time() < result.expire then
@@ -512,7 +512,7 @@ function QBCore.Functions.IsLicenseInUse(license)
     for _, player in pairs(players) do
         local identifiers = GetPlayerIdentifiers(player)
         for _, id in pairs(identifiers) do
-            if string.find(id, 'license') then
+            if string.find(id, QBCore.Config.PrimaryIdentifier) then
                 if id == license then
                     return true
                 end
