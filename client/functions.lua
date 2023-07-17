@@ -416,14 +416,15 @@ function QBCore.Functions.GetVehicleProperties(vehicle)
         local pearlescentColor, wheelColor = GetVehicleExtraColours(vehicle)
 
         local colorPrimary, colorSecondary = GetVehicleColours(vehicle)
+        local customPrimaryColor = nil
         if GetIsVehiclePrimaryColourCustom(vehicle) then
             local r, g, b = GetVehicleCustomPrimaryColour(vehicle)
-            colorPrimary = {r, g, b}
+            customPrimaryColor = {r, g, b}
         end
-
+        local customSecondaryColor = nil
         if GetIsVehicleSecondaryColourCustom(vehicle) then
             local r, g, b = GetVehicleCustomSecondaryColour(vehicle)
-            colorSecondary = {r, g, b}
+            customSecondaryColor = {r, g, b}
         end
 
         local extras = {}
@@ -432,11 +433,6 @@ function QBCore.Functions.GetVehicleProperties(vehicle)
                 local state = IsVehicleExtraTurnedOn(vehicle, extraId) == 1
                 extras[tostring(extraId)] = state
             end
-        end
-
-        local modLivery = GetVehicleMod(vehicle, 48)
-        if GetVehicleMod(vehicle, 48) == -1 and GetVehicleLivery(vehicle) ~= 0 then
-            modLivery = GetVehicleLivery(vehicle)
         end
 
         local tireHealth = {}
@@ -476,6 +472,8 @@ function QBCore.Functions.GetVehicleProperties(vehicle)
             oilLevel = QBCore.Shared.Round(GetVehicleOilLevel(vehicle), 0.1),
             color1 = colorPrimary,
             color2 = colorSecondary,
+            customPrimaryColor = customPrimaryColor,
+            customSecondaryColor = customSecondaryColor,
             pearlescentColor = pearlescentColor,
             dashboardColor = GetVehicleDashboardColour(vehicle),
             wheelColor = wheelColor,
@@ -495,11 +493,11 @@ function QBCore.Functions.GetVehicleProperties(vehicle)
                 IsVehicleNeonLightEnabled(vehicle, 2),
                 IsVehicleNeonLightEnabled(vehicle, 3)
             },
-            neonColor = table.pack(GetVehicleNeonLightsColour(vehicle)),
+            neonColor = {GetVehicleNeonLightsColour(vehicle)},
             headlightColor = GetVehicleHeadlightsColour(vehicle),
             interiorColor = GetVehicleInteriorColour(vehicle),
             extras = extras,
-            tyreSmokeColor = table.pack(GetVehicleTyreSmokeColor(vehicle)),
+            tyreSmokeColor = {GetVehicleTyreSmokeColor(vehicle)},
             modSpoilers = GetVehicleMod(vehicle, 0),
             modFrontBumper = GetVehicleMod(vehicle, 1),
             modRearBumper = GetVehicleMod(vehicle, 2),
@@ -550,9 +548,11 @@ function QBCore.Functions.GetVehicleProperties(vehicle)
             modTank = GetVehicleMod(vehicle, 45),
             modWindows = GetVehicleMod(vehicle, 46),
             modKit47 = GetVehicleMod(vehicle, 47),
-            modLivery = modLivery,
+            modStandardLivery = GetVehicleMod(vehicle, 48),
+            modLivery = GetVehicleLivery(vehicle),
             modKit49 = GetVehicleMod(vehicle, 49),
             liveryRoof = GetVehicleRoofLivery(vehicle),
+            bulletProofTyres = not GetVehicleTyresCanBurst(vehicle)
         }
     else
         return
@@ -598,22 +598,10 @@ function QBCore.Functions.SetVehicleProperties(vehicle, props)
         if props.oilLevel then
             SetVehicleOilLevel(vehicle, props.oilLevel)
         end
-        if props.color1 then
-            if type(props.color1) == "number" then
-                ClearVehicleCustomPrimaryColour(vehicle)
-                SetVehicleColours(vehicle, props.color1, colorSecondary)
-            else
-                SetVehicleCustomPrimaryColour(vehicle, props.color1[1], props.color1[2], props.color1[3])
-            end
-        end
-        if props.color2 then
-            if type(props.color2) == "number" then
-                ClearVehicleCustomSecondaryColour(vehicle)
-                SetVehicleColours(vehicle, props.color1 or colorPrimary, props.color2)
-            else
-                SetVehicleCustomSecondaryColour(vehicle, props.color2[1], props.color2[2], props.color2[3])
-            end
-        end
+        if props.customPrimaryColor then SetVehicleCustomPrimaryColour(vehicle, props.customPrimaryColor[1], props.customPrimaryColor[2], props.customPrimaryColor[3]) end
+        if props.customSecondaryColor then SetVehicleCustomSecondaryColour(vehicle, props.customSecondaryColor[1], props.customSecondaryColor[2], props.customSecondaryColor[3]) end
+        if props.color1 then SetVehicleColours(vehicle, props.color1, colorSecondary) end
+        if props.color2 then SetVehicleColours(vehicle, props.color1 or colorPrimary, props.color2) end
         if props.pearlescentColor then
             SetVehicleExtraColours(vehicle, props.pearlescentColor, wheelColor)
         end
@@ -840,16 +828,15 @@ function QBCore.Functions.SetVehicleProperties(vehicle, props)
         if props.modKit47 then
             SetVehicleMod(vehicle, 47, props.modKit47, false)
         end
-        if props.modLivery then
-            SetVehicleMod(vehicle, 48, props.modLivery, false)
-            SetVehicleLivery(vehicle, props.modLivery)
-        end
+        if props.modLivery then SetVehicleLivery(vehicle, props.modLivery) end
+        if props.modStandardLivery then SetVehicleMod(vehicle, 48, props.modStandardLivery, false) end
         if props.modKit49 then
             SetVehicleMod(vehicle, 49, props.modKit49, false)
         end
         if props.liveryRoof then
             SetVehicleRoofLivery(vehicle, props.liveryRoof)
         end
+        if props.bulletProofTyres ~= nil then SetVehicleTyresCanBurst(vehicle, not props.bulletProofTyres) end
     end
 end
 
